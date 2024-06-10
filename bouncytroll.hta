@@ -1,0 +1,143 @@
+<html>
+<head>
+    <title>Bouncing Window</title>
+    <HTA:APPLICATION ID="oHTA"
+        APPLICATIONNAME="Bouncing Window"
+        SCROLL="No"
+        SINGLEINSTANCE="Yes"
+        BORDER="None"
+        INNERBORDER="No"
+        CAPTION="No"
+        WINDOWSTATE="Normal"
+    >
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Hide scrollbars */
+            background-image: url('https://i.pinimg.com/originals/e1/f2/3d/e1f23dfb401e68caf9e0d81e469a2b46.gif');
+            background-size: cover;
+        }
+    </style>
+    <script language="VBScript">
+        ' Set initial position and speed
+        Dim winLeft, winTop, xVel, yVel
+        Dim isDragging
+        Dim prevX, prevY
+        Dim releaseX, releaseY
+        Dim deltaX, deltaY
+        Dim taskbarHeight
+
+        winLeft = 0
+        winTop = 0
+        xVel = 0
+        yVel = 0
+        isDragging = False
+        releaseX = 0
+        releaseY = 0
+        deltaX = 0
+        deltaY = 0
+        taskbarHeight = 0 ' Initialize taskbar height
+
+        Sub StartBouncing()
+            window.resizeTo 400, 300 ' Initial window size
+            window.moveTo winLeft, winTop
+            GetTaskbarHeight ' Call the function to get the taskbar height
+            MoveWindow
+        End Sub
+
+        Sub MoveWindow()
+            ' Get the dimensions of the screen
+            Set doc = window.document
+            screenWidth = doc.parentWindow.screen.availWidth
+            screenHeight = doc.parentWindow.screen.availHeight
+
+            ' Adjust screen height to exclude the taskbar
+            screenHeight = screenHeight - taskbarHeight
+
+            ' If the window hits the edges, change direction
+            If winLeft < 0 Or winLeft + 400 > screenWidth Then
+                xVel = -xVel
+            End If
+            If winTop < 0 Or winTop + 300 > screenHeight Then
+                yVel = -yVel * 0.8 ' Decrease bounce effect
+                xVel = xVel * 0.8 ' Decrease horizontal speed on bounce
+                ' Adjust the bottom boundary by setting a margin
+                If winTop + 500 > screenHeight Then
+                    winTop = screenHeight - 500
+                    yVel = -Abs(yVel) ' Reverse the vertical velocity to prevent dropping off
+                End If
+            End If
+
+            ' Apply gravity
+            yVel = yVel + 0.3 ' Increase or decrease gravity effect here
+
+            ' Move the window
+            winLeft = winLeft + xVel
+            winTop = winTop + yVel
+
+            ' Move the window to the new position
+            window.moveTo winLeft, winTop
+
+            ' Call the MoveWindow function again after a short delay
+            window.setTimeout "MoveWindow", 20 ' Adjust speed here
+        End Sub
+
+        Sub StartDrag()
+            isDragging = True
+            prevX = window.event.clientX
+            prevY = window.event.clientY
+            deltaX = 0
+            deltaY = 0
+        End Sub
+
+        Sub EndDrag()
+            isDragging = False
+            releaseX = window.event.clientX
+            releaseY = window.event.clientY
+
+            ' Calculate velocity based on the release position and previous position
+            xVel = deltaX / 10 ' Adjust inertia here
+            yVel = deltaY / 10 ' Adjust inertia here
+        End Sub
+
+        Sub DragWindow()
+            If isDragging Then
+                newX = window.event.clientX
+                newY = window.event.clientY
+
+                deltaX = newX - prevX
+                deltaY = newY - prevY
+
+                If Abs(deltaX) > 1 Or Abs(deltaY) > 1 Then
+                    winLeft = winLeft + deltaX
+                    winTop = winTop + deltaY
+
+                    window.moveTo winLeft, winTop
+
+                    prevX = newX
+                    prevY = newY
+                End If
+            End If
+        End Sub
+
+        ' Function to get the taskbar height
+        Sub GetTaskbarHeight()
+            Dim oShell, oShellWindows, i
+            Set oShell = CreateObject("Shell.Application")
+            Set oShellWindows = oShell.Windows
+            For i = oShellWindows.Count - 1 To 0 Step -1
+                If InStr(1, oShellWindows.Item(i).FullName, "explorer.exe", vbTextCompare) <> 0 Then
+                    If InStr(1, oShellWindows.Item(i).LocationURL, "shell::", vbTextCompare) = 0 Then
+                        taskbarHeight = screenHeight - oShellWindows.Item(i).Top
+                        Exit For
+                    End If
+                End If
+            Next
+        End Sub
+
+        StartBouncing
+    </script>
+</head>
+<body onmousemove="DragWindow()" onmousedown="StartDrag()" onmouseup="EndDrag()">
+</body>
+</html>

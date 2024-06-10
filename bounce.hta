@@ -1,0 +1,76 @@
+<HTA:APPLICATION 
+    ID="oHTA"
+    APPLICATIONNAME="Bouncing Image"
+    BORDER="none"
+    WINDOWSTATE="Normal"
+/>
+
+<html>
+<head>
+    <title>Bouncing Image</title>
+    <style>
+        /* Ensure the window has no border */
+        html, body {
+            border: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script language="VBScript">
+        Dim winLeft, winTop, xVel, yVel
+
+        Sub StartBouncing()
+            Dim screenWidth, screenHeight, i
+            screenWidth = document.parentWindow.screen.availWidth
+            screenHeight = document.parentWindow.screen.availHeight
+
+            For i = 1 To 20
+                ' Set initial position and speed
+                winLeft = Int(screenWidth * Rnd())
+                winTop = Int(screenHeight * Rnd())
+                xVel = Rnd() * 4 - 2 ' Random number between -2 and 2
+                yVel = Rnd() * 4 - 2 ' Random number between -2 and 2
+
+                ' Ensure initial position is within screen bounds
+                If winLeft > screenWidth - 200 Then winLeft = screenWidth - 200
+                If winTop > screenHeight - 150 Then winTop = screenHeight - 150
+
+                ' Start bouncing
+                MoveWindow
+            Next
+        End Sub
+
+        Sub MoveWindow()
+            ' Get the dimensions of the screen
+            Dim screenWidth, screenHeight
+            screenWidth = document.parentWindow.screen.availWidth
+            screenHeight = document.parentWindow.screen.availHeight
+
+            ' If the window hits the edges, change direction
+            If winLeft < 0 Or winLeft + 200 > screenWidth Then
+                xVel = -xVel
+            End If
+            If winTop < 0 Or winTop + 150 > screenHeight Then
+                yVel = -yVel
+            End If
+
+            ' Move the window
+            winLeft = winLeft + xVel
+            winTop = winTop + yVel
+
+            ' Move the window to the new position
+            window.moveTo winLeft, winTop
+
+            ' Call the MoveWindow function again after a short delay
+            window.setTimeout "MoveWindow", 20 ' Adjust speed here
+        End Sub
+
+        StartBouncing
+    </script>
+</head>
+<body>
+</body>
+</html>
